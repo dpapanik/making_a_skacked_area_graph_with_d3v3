@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs–– -->
+  <meta charset="utf-8">
+  <title>Making a Stacked Area Graph</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/customize.css">
+  <script src='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.js'></script>
+  <link href='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.css' rel='stylesheet' />
+  <style>
+  #map_1,#map_2,#map_3 {
+    height: 500px;
+  }
+  </style>
+
+  <!-- D3 v3 -->
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+<body>
+
+  <div class="container one-bottom" style="margin-top: 50px">
+    <div class="ten columns">
+      <h2>Mobility on Demand Systems: Data-Driven Analysis, Simulation, Visualization</h2>
+      <p>
+        ARCH 6306/6050, DSBA 6010, ITIS 8010/6010: Wednesdays 6pm-8:30pm, Taught Online
+        <br>
+        Dr. Dimitris Papanikolaou | dpapanik@uncc.edu | Urban Synergetics Lab | https://urbansynergeticslab.net
+      </p>
+    </div>
+    <div class="two columns">
+      <a href="https://urbansynergeticslab.net/"><img class="scale-with-grid" src="img/LabLogo_dark_cropped.png"></a>
+    </div>
+  </div>
+
+  <div class="container one-bottom" style="margin-top: 50px">
+    <div class="twelve columns">
+      <h3>Making a Stacked Area Graph</h3>
+      <p>
+        In this tutorial, you will learn how to make a stacked area graph graph.
+        This example uses <a href="https://d3js.org/d3.v3.min.js">D3.js v3</a> and <a href="http://getskeleton.com/">Skeleton</a> boilerplate.
+        Before you begin, visit and read the following <a href="#links">links</a> at the bottom of this page.
+        If you prefer a version that contains only code and not text description, then check out <a href="">here</a>. The GitHub repository for this tutorial is <a href="">here</a>.
+      </p>
+    </div>
+  </div>
+
+
+
+
+  <div class="container one-bottom" >
+		<svg class="half-bottom" id="Layer_1" width="100%" height="100%" viewBox="0 0 1200 600" style="enable-background:new 0 0 1200 800;" xml:space="preserve">
+			<style type="text/css">
+				.st0{fill:white; stroke:black; stroke-width:4;}
+			</style>
+			<g id="rect_01">
+				<rect  class="st0" x="0" y="0" width="1200" height="600"/>
+			</g>
+		</svg>
+
+    <div class="row" style="text-align: center;" >
+			<div class="four columns">
+				<button id="button_01" class="button-primary" onclick="redraw()">Redraw</button>
+			</div>
+			<div class="four columns">
+				<button id="button_02" class="button-primary" onclick="increase()">Increase Layers</button>
+			</div>
+			<div class="four columns">
+				<button id="button_03" class="button-primary" onclick="decrease()">Decrease Layers</button>
+			</div>
+		</div>
+
+	</div>
+
+
+
+
+  <div class="container" >
+    <div id="area_01" class="twelve columns">
+    </div>
+  </div>
+
+  <div class="container half-bottom">
+    <div class="twelve columns">
+      <h3>Step 1: Setup</h3>
+      <p>First, you declare and initiate your control variables, such as number of trips, number of stations, margin and width of the SVG HTML element that will contain the graph, and thickness, diameter, and color for your chord graph's arcs and chords</p>
+      <pre>
+        <code>
+          // STEP 1: Setup
+          var data;
+          var timesteps = 24;
+          var layers = 5;
+          var dateParser = d3.time.format("%m/%d/%y").parse;
+        </code>
+      </pre>
+    </div>
+  </div>
+
+
+
+
+  <div class="container half-bottom">
+    <div class="twelve columns">
+      <h3>Step 2: Create/Get Data</h3>
+      <p>In this example, we create synthetically data.</p>
+      <pre>
+        <code>
+          function createData(layers, timesteps){
+            var data = [];
+            for(var i=0; i < layers; i++){
+              data.push({
+                name: "Group"+i,
+                values: (function(){
+                  var values =[];
+                  for(var j=0; j < timesteps; j++){
+                    values.push({
+                      value: Math.floor(Math.random() * 10),
+                      date: d3.time.format("%m/%d/%y").parse("05/"+j+"/18")
+                    })
+                  }
+                  return values;
+                })()
+              })
+            }
+            return data;
+          }
+        </code>
+      </pre>
+    </div>
+  </div>
+
+
+  <div class="container half-bottom">
+    <div class="twelve columns">
+      <h3>Step 3: Create Stack Layout</h3>
+      <p>In this example, we create synthetically data.</p>
+      <pre>
+        <code>
+          var stack = d3.layout.stack()
+            .values(function(d) { return d.values; }) // the array to get the values from
+            .x(function(d) { return d.date; }) // what attribute from each entry of the array to use for x value
+            .y(function(d) { return d.value; }); // what attribute from each entry of the array to use for y value
+        </code>
+      </pre>
+    </div>
+  </div>
+
+
+  <div class="container half-bottom">
+    <div class="twelve columns">
+      <h3>Step 4: Create SVG Shape Generators for area graphs</h3>
+      <p>The <code>d3.svg.area()</code> function gets your data, parses it, and for each one of them, it computes three attributes: x,y0,y1.</p>
+      <pre>
+        <code>
+          var area = d3.svg.area()
+            .interpolate("cardinal")
+            .x(function(d) { return x(d.date); })
+            .y0(function(d) { return y(d.y0); })
+            .y1(function(d) { return y(d.y0 + d.y); });
+        </code>
+      </pre>
+    </div>
+  </div>
+
+
+
+
+
+    <div id="links" class="container one-bottom" >
+      <div class="twelve columns">
+        <h2>Links</h2>
+        <h4>D3.JS</h4>
+        <ul>
+          <li><a href="https://www.dashingd3js.com/">Dashing D3js</a></li>
+          <li><a href="https://www.d3indepth.com/">D3 In Depth</a></li>
+          <li><a href="http://square.github.io/intro-to-d3/">Intro to D3js by Square</a></li>
+        </ul>
+        <h4>D3 Layouts</h4>
+        <ul>
+          <li>  <a href="https://d3indepth.com/layouts/">D3 In Depth Layouts</a></li>
+          <li> <a href="https://d3-wiki.readthedocs.io/zh_CN/master/Chord-Layout/">Chord Layout</a> </li>
+          <li> Read answer <a href="https://stackoverflow.com/questions/21813723/change-and-transition-dataset-in-chord-diagram-with-d3">"Creating a Chord Diagram"</a>  by <a href="https://stackoverflow.com/users/3128209/ameliabr">AmeliaBR</a> in Stack Overflow (scroll down until you find the answer) </li>
+        </ul>
+
+      </div>
+    </div>
+
+
+    <div class="container one-bottom" style="margin-top: 50px">
+      <div class="four columns offset-by-four">
+        <a href="https://urbansynergeticslab.net/"><img class="scale-with-grid" src="img/LabLogo_dark_cropped.png"></a>
+      </div>
+    </div>
+
+
+    <script type="text/javascript">
+
+    // Stacked Area Graph Tutorial by Dimitris Papanikolaou
+    // 2019 02 3
+
+    // STEP 1: Setup
+    var data;
+    var timesteps = 24;
+    var layers = 5;
+
+    //Define date parser
+    var dateParser = d3.time.format("%m/%d/%y").parse;
+
+    //Define margins, width, height
+    var margin = {top: 20, right: 30, bottom: 30, left: 40};
+
+    var svg = d3.select("#rect_01");
+    var height = svg.select("rect").node().getBBox().height;
+    var width = svg.select("rect").node().getBBox().width;
+    var xPos = svg.select("rect").node().getBBox().x;
+    var yPos = svg.select("rect").node().getBBox().y;
+
+
+    //Define X scale
+    var x = d3.time.scale()
+    .range([0, width]);
+
+    //Define Y scale
+    var y = d3.scale.linear()
+    .range([height, 0]);
+
+    //Define color scale
+    var z = d3.scale.linear()
+    .range([d3.rgb(255,0,0), d3.rgb(105,13,15)]);
+
+
+    // STEP 2: Create Stack Layout
+    var stack = d3.layout.stack()
+    .values(function(d) { return d.values; }) // the array to get the values from
+    .x(function(d) { return d.date; }) // what attribute from each entry of the array to use for x value
+    .y(function(d) { return d.value; }); // what attribute from each entry of the array to use for y value
+
+
+    // STEP 3: Create SVG Shape Generator for areas
+    //The d3.svg.area() function gets your data, parses it, and for each one of them, it computes three attributes: x,y0,y1.
+    var area = d3.svg.area()
+    .interpolate("cardinal")
+    .x(function(d) { return x(d.date); })
+    .y0(function(d) { return y(d.y0); })
+    .y1(function(d) { return y(d.y0 + d.y); });
+
+    // Create Data
+    // Stack data. For each value in your array, the stack function create a second y value, called y0, that has the aggregate value of all y values below it.
+    // Since in JS if you modify an element of a copied array, it gets copied in all other arrays, we can add new stuff in the stacked_Data and it is also being added in the data.
+    // for example, the following code will ALSO add "Hello" to the data array – not only to the stacked_Data:
+    // stacked_Data.forEach(function(d){d.values.forEach(function(v){ v.new="Hello"})})
+
+    // Create Data
+    data = createData(layers, timesteps);
+
+     update(stack(data));
+
+
+
+
+    /********************/
+    /********************/
+    /***** FUNCTIONS ****/
+    /********************/
+    /********************/
+
+
+    function update(data){
+
+      // Readjust X_Scale and Y_Scale domains
+      x.domain(get_x_domain(data));
+      y.domain(get_y_domain(data));
+      z.domain([0,data.length]);
+
+      var layers =   svg
+      .selectAll(".layer")
+      .data(data);
+
+      //Enter
+      layers
+      .enter()
+      .append("path")
+      .attr("transform", "translate(" + xPos + "," + yPos + ")")
+      .attr("class", "layer")
+      .attr("d", function(d) { return area(d.values);})
+      .style("stroke", d3.rgb(0,0,0))
+      .style("stroke-width", 0.3)
+      .transition().duration(100)
+      .style("fill", function(d, i) { return z(i); });
+
+      //exit
+      layers
+      .exit()
+      .transition().duration(500) //fade it out before removing it
+      // .attr("opacity", 0)
+      .style("fill-opacity", 0)
+      .remove();
+
+
+      //Modify
+      layers
+      .transition().duration(500)
+      .attr("d", function(d) { return area(d.values); })
+      .style("fill", function(d, i) { return z(i); });
+
+
+		}
+
+
+    function redraw(){
+      data = createData(layers, timesteps);
+      update(stack(data));
+    }
+    function increase(){
+      data.push(createLayer(timesteps, 8));
+      layers++;
+       update(stack(data));
+    }
+    function decrease(){
+      data.pop();
+      layers--;
+      update(stack(data));
+    }
+
+
+
+    // This function creates a dataset with the same structure as the outcome of the Nest function
+    function createData(layers, timesteps){
+      var data = [];
+      for(var i=0; i<layers; i++){
+        data.push({
+          name: "Group"+i,
+          values: (function(){
+            var values =[];
+            for(var j=0; j<timesteps; j++){
+              values.push({
+                value: Math.floor(Math.random() * 10),
+                date: d3.time.format("%m/%d/%y").parse("05/"+j+"/18")
+              })
+            }
+            return values;
+          })()
+        })
+      }
+      return data;
+    }
+
+    function createLayer(timesteps, i){
+      return {
+        name: "Group"+i,
+        values: (function(){
+          var values =[];
+          for(var j=0; j<timesteps; j++){
+            values.push({
+              value: Math.floor(Math.random() * 10),
+              date: d3.time.format("%m/%d/%y").parse("05/"+j+"/18")
+            })
+          }
+          return values;
+        })()
+      }
+    }
+
+    function get_x_domain(data){
+      var x_vals = [];
+      data.forEach(function(d){ d.values.forEach(function(v){ x_vals.push(v.date)})});
+      return d3.extent(x_vals);
+    }
+
+    function get_y_domain(data){
+      var y_vals = [];
+      data.forEach(function(d){ d.values.forEach(function(v){ y_vals.push(v.y0 + v.y)})});
+      var maxVal = d3.max(y_vals);
+      return [0, maxVal];
+    }
+
+    </script>
+
+
+  </body>
+  </html>
